@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title> title </title>
+<script>
+window.onload = function(){
+    var canvas = document.createElement("canvas"),
+    c = canvas.getContext("2d");
+    canvas.width = 800;
+    canvas.height = 500;
+    
+    var blockArray = [];
+    var gameOver=false;
+    function block(x,y,width,height) {
+        
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        
+    }
+    
+    
+    function rect(x,y,w,h)
+    {
+        this.x=x;
+        this.y=y;
+        this.w=w;
+        this.h=h;
+        
+        
+    }
+   
+    var player = {
+        x :  360, 
+        y : 470,
+        width: 80,
+        height: 20,
+        life: 3,
+        speed : 1,
+        maxSpeed : 2,
+
+        speedUp: function(increase){
+            if(this.speed != this.maxSpeed)
+            {
+                this.speed +=increase;
+            }
+        },
+    }; 
+    
+    var ball = {
+        x : player.x ,
+        y : player.y - player.height - 40,
+        radius : 10,
+        xDir : 1,
+        yDir : 1,
+        speed : 3,
+        maxSpeed : 5,
+        box: new rect(this.x,this.y,this.radius*2,this.radius*2),
+        speedUp: function(increase){
+            if(this.speed != this.maxSpeed)
+            {
+                this.speed +=increase;
+            }
+        },
+        
+        contains: function(x,y){
+            
+            var offset = 10;
+            
+            
+      
+            
+            if( this.y+this.radius <= y +offset && this.y+this.radius >=y)
+            {
+                if( this.x <= x+75 && this.x >= x)
+                {
+                
+                return 0;
+                }
+            }
+           
+            
+            if(this.y >= y && this.y <= y+40)
+            {
+                if(this.x-this.radius <=x + 75 && this.x-this.radius >= x + 75 -offset)
+                {
+                    return 1;
+                }
+            }
+            
+            if (this.y-this.radius <= y+40 && this.y-this.radius >= y+40-offset)
+            {
+                if(this.x <=x+75 && this.x >=x)
+                {
+                    return 2;
+                }
+            }
+           
+            if(this.y >= y && this.y <= y+40)
+            {
+                if(this.x+this.radius >=x && this.x+this.radius <= x+offset)
+                {
+                    return 3;
+                }
+            }
+            
+            
+        }
+    };
+    
+    document.body.appendChild(canvas);
+    
+    
+    load();
+    
+    setInterval(update,30);
+    setInterval(draw,30);
+    
+    
+    
+    
+    function load(){
+        
+        var xPos = 10;
+        var yPos = 10;
+        
+        
+        for( var i = 0; i < 45; i++)
+        {
+            var newBlock = new block(xPos, yPos, 75, 40);
+            
+            
+            
+            
+            blockArray.push(newBlock);
+            
+        
+           xPos = xPos + newBlock.width + 10;
+            
+            if ( xPos > 700)
+            {
+                xPos = 10;
+                yPos = yPos + newBlock.height+10;
+            }
+            
+            
+        }
+        
+    }
+    
+    
+    function update(){
+         
+        
+        
+         ball.x += ball.xDir * ball.speed;
+         ball.y += ball.yDir * ball.speed;
+        
+        
+        if(ball.x <= 0)
+        {
+            ball.xDir = -ball.xDir;
+        }
+        if(ball.y >= canvas.height)
+        {
+            player.life--;
+            ball.speed= 3;
+            player.speed = 1;
+            ball.x = player.x + player.width/2;
+            ball.y = player.y - player.height - 100;
+        }
+        if(ball.y < 0)
+        {
+            ball.yDir = -ball.yDir;
+        }
+        if(ball.x >= canvas.width)
+        {
+            ball.xDir = -ball.xDir;
+        }
+        
+        
+        window.onkeydown  = function(event){
+            
+            if(event.keyCode == 68)
+            {
+                player.x += 9 * player.speed;
+            }
+            if(event.keyCode == 65)
+            {
+                player.x -= 9 * player.speed;
+            }
+            
+            
+        }
+        
+        
+        if(player.x >= canvas.width - player.width)
+        {
+            player.x = canvas.width - player.width;
+        }
+        
+        if(player.x <= 0)
+        {
+            player.x = 0;
+        }
+        
+        if(ball.contains(player.x,player.y) == 0)
+          {
+               //ball.speed = 0;
+           
+               ball.yDir = - ball.yDir;
+              
+               
+           
+           }
+        if(ball.contains(player.x,player.y) == 1 || ball.contains(player.x,player.y) == 3)
+          {
+               //ball.speed = 0;
+             
+               ball.xDir = - ball.yDir;
+              
+               
+           
+           }
+        
+        for(var i = 0; i < blockArray.length; i++)
+        {
+            if( ball.contains(blockArray[i].x,blockArray[i].y) == 2 || ball.contains(blockArray[i].x,blockArray[i].y) == 0)
+               {                
+                   ball.speedUp(0.2);
+                   player.speedUp(0.1);
+                    ball.yDir = -ball.yDir;
+                   blockArray.splice(i,1);
+                   
+               }
+            
+            if( ball.contains(blockArray[i].x,blockArray[i].y) == 1 || ball.contains(blockArray[i].x,blockArray[i].y) == 3)
+               {                
+                   ball.speedUp(0.2);
+                   player.speedUp(0.1);
+                    ball.xDir = -ball.xDir;
+                    blockArray.splice(i,1);
+                 
+               }
+        }
+        
+        if( player.life == 0)
+        {
+            gameOver=true;
+        }
+        
+        if(blockArray.length == 0)
+        {
+            gameOver=true;
+        }
+        
+    }
+    function draw(){
+        
+        c.clearRect(0,0, canvas.width,canvas.height);
+        c.fillStyle ="black";
+        c.fillRect(0,0,canvas.width,canvas.height);
+        
+        c.fillStyle = "green";
+        c.fillRect(player.x,player.y,player.width,player.height);
+        
+        
+       if(!gameOver)
+       {
+        
+        c.fillStyle = "white";
+        
+        c.beginPath();
+        c.arc(ball.x,ball.y,ball.radius,0,2*Math.PI);
+        c.fill();
+        for (var i = 0; i < blockArray.length; i++)
+        {
+            var drawBlock = blockArray[i];
+            c.fillStyle = "blue";
+            c.fillRect(drawBlock.x,drawBlock.y,drawBlock.width,drawBlock.height);
+        }
+       }
+        else
+        {
+            
+            c.font = "30px Arial";
+            c.fillText("Game Over", canvas.width/2,canvas.height/2);
+            
+            
+        }
+	
+    };
+    
+    }
+ 
+</script>
+<style>
+</style>
+</head>
+<body>
+
+</body>
+</html>
